@@ -5,7 +5,7 @@ import random
 
 from models import setup_db, Book, db
 
-BOOKS_PER_SHELF = 8
+BOOKS_PER_SHELF = 10
 
 
 def paginate_books(request, selection):
@@ -93,7 +93,7 @@ def create_app(test_config=None):
             )
 
         except:
-            db.session.rollbak()
+            db.session.rollback()
             abort(422)
 
     @app.route("/books", methods=["POST"])
@@ -127,9 +127,45 @@ def create_app(test_config=None):
     #        Pay special attention to the status codes used in the aborts since those are relevant for this task!
 
     # @TODO: Write error handler decorators to handle AT LEAST status codes 400, 404, and 422.
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return jsonify({
+            'success': False,
+            'status': 404,
+            'message': 'Resource not found'
+        }), 404
+
+    @app.errorhandler(405)
+    def not_allowed(error):
+        return jsonify({
+            'success': False,
+            'status': 405,
+            'message': 'method not allowed'
+        }), 405
+
+    @app.errorhandler(400)
+    def bad_request(error):
+        return jsonify({
+            'success': False,
+            'error': 400,
+            'message': 'Bad Request'
+        }), 400
+
+    @app.errorhandler(422)
+    def uprocessable(error):
+        return jsonify({
+            'success': False,
+            'error': 422,
+            'message': 'Your request can not be processed'
+        }), 422
 
     # TEST: Practice writing curl requests. Write some requests that you know will error in expected ways.
     #       Make sure they are returning as expected. Do the same for other misformatted requests or requests missing data.
     #       If you find any error responses returning as HTML, write new error handlers for them.
 
     return app
+
+if __name__ == '__main__':
+    app = create_app()
+    app.debug = True
+    app.run()
