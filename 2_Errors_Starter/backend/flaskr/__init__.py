@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy  # , or_
 from flask_cors import CORS
 import random
 
-from models import setup_db, Book
+from models import setup_db, Book, db
 
 BOOKS_PER_SHELF = 8
 
@@ -58,9 +58,7 @@ def create_app(test_config=None):
         body = request.get_json()
 
         try:
-            book = Book.query.filter(Book.id == book_id).one_or_none()
-            if book is None:
-                abort(404)
+            book = Book.query.get_or_404(book_id)
 
             if "rating" in body:
                 book.rating = int(body.get("rating"))
@@ -74,15 +72,12 @@ def create_app(test_config=None):
             )
 
         except:
-            abort(400)
+            db.session.rollback()
 
     @app.route("/books/<int:book_id>", methods=["DELETE"])
     def delete_book(book_id):
         try:
-            book = Book.query.filter(Book.id == book_id).one_or_none()
-
-            if book is None:
-                abort(404)
+            book = Book.query.get_or_404(book_id)
 
             book.delete()
             selection = Book.query.order_by(Book.id).all()
@@ -98,6 +93,7 @@ def create_app(test_config=None):
             )
 
         except:
+            db.session.rollbak()
             abort(422)
 
     @app.route("/books", methods=["POST"])
