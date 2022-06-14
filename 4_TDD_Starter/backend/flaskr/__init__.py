@@ -133,6 +133,22 @@ def create_app(test_config=None):
     #        If you use a different argument, make sure to update it in the frontend code.
     #        The endpoint will need to return success value, a list of books for the search and the number of books with the search term
     #        Response body keys: 'success', 'books' and 'total_books'
+    @app.route('/books/search', methods=['POST'])
+    def search_books():
+        body = request.get_json()
+        if body:
+            search_term = body.get('search', None)
+            if search_term:
+                books = Book.query.filter(Book.title == search_term).all()
+            else:
+                abort(422)
+        else:
+            abort(422)
+        return jsonify({
+            'success': True,
+            'books': [book.format() for book in books],
+            'total_books': len(books)
+        })
 
     @app.errorhandler(404)
     def not_found(error):
