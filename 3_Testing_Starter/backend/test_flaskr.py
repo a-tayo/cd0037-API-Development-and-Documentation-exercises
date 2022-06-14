@@ -1,6 +1,7 @@
 import os
 import unittest
 import json
+from urllib import response
 from flask_sqlalchemy import SQLAlchemy
 
 from flaskr import create_app
@@ -34,12 +35,42 @@ class BookTestCase(unittest.TestCase):
         pass
 
 
-# @TODO: Write at least two tests for each endpoint - one each for success and error behavior.
-#        You can feel free to write additional tests for nuanced functionality,
-#        Such as adding a book without a rating, etc.
-#        Since there are four routes currently, you should have at least eight tests.
-# Optional: Update the book information in setUp to make the test database your own!
+    # @TODO: Write at least two tests for each endpoint - one each for success and error behavior.
+    #        You can feel free to write additional tests for nuanced functionality,
+    #        Such as adding a book without a rating, etc.
+    #        Since there are four routes currently, you should have at least eight tests.
+    # Optional: Update the book information in setUp to make the test database your own!
+    def test_retrieve_books_success(self):
+        """Test the retrieve books endpoint"""
+        res = self.client().get('/books')
+        self.assertEqual(res.status_code, 200)
 
+    def test_retrieve_books_failure(self):
+        """Test the retrive books endpoint for failure"""
+        res= self.client().get('/books/1')
+        self.assertEqual(res.status_code, 405)
+
+    def test_update_book_success(self):
+        res = self.client().patch('/books/1', json={'rating':3})
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+
+    def test_400_update_book(self):
+        res = self.client().patch('/books/1')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+
+    def test_200_create_book(self):
+        res = self.client().post('/books', json=self.new_book)
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+
+    def test_405_create_book(self):
+        res = self.client().post("/books/45", json=self.new_book)
+        # data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 405)
 
 # Make the tests conveniently executable
 if __name__ == "__main__":
